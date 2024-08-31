@@ -3,7 +3,7 @@ import openai
 import PyPDF2
 
 st.set_page_config(
-    page_title="Lexia chatbot",
+    page_title="Lexia Chatbot",
     layout="wide",
 )
 
@@ -17,7 +17,6 @@ def read_document(file):
         return text
     else:
         return "Unsupported file type"
-
 
 # Streamlit app
 def main():
@@ -42,7 +41,7 @@ def main():
             # System prompt input in the sidebar
             system_prompt = st.sidebar.text_area(
                 "Enter System Prompt (context for the AI)",
-                value="You are a helpful assistant."
+                value="You are a helpful assistant. Provide comprehensive and informative responses based on the uploaded document."
             )
 
             # Model selection in the sidebar
@@ -71,22 +70,23 @@ def main():
             user_question = st.text_input("Ask something about the document:")
 
             if user_question:
-                response = openai.ChatCompletion.create(
-                    model=model_name,
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": f"Document content: {document_text}"},
-                        {"role": "user", "content": user_question},
-                    ],
-                    max_tokens=max_tokens,
-                    temperature=temperature
-                )
-
-                st.write(response['choices'][0]['message']['content'])
+                try:
+                    response = openai.ChatCompletion.create(
+                        model=model_name,
+                        messages=[
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user", "content": f"Document content: {document_text}"},
+                            {"role": "user", "content": user_question},
+                        ],
+                        max_tokens=max_tokens,
+                        temperature=temperature,
+                    )
+                    st.write(response.choices[0].message["content"])
+                except openai.error.APIError as e:
+                    st.error(f"An error occurred: {e}")
 
             # Ensure data privacy
             st.sidebar.warning("Note: This interaction is private, and the data is not used for training.")
-
 
 if __name__ == "__main__":
     main()
